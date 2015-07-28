@@ -42,7 +42,7 @@
    * Handle children object
    */
   function handleChildren (children) {
-    var result = typeof children === 'function' ?
+    var result = typeof children === 'function'
       ? children()
       : children
 
@@ -147,7 +147,7 @@
           m.startComputation()
 
           onSuccess = function (data) {
-            component.state = data
+            component.state = data || component.state
             m.endComputation()
           }
 
@@ -167,7 +167,7 @@
         }
 
         // Save result as component state
-        component.state = result
+        component.state = result || component.state
 
         // Return component state (default behavior for controller)
         return component.state
@@ -182,7 +182,7 @@
         component.props = props || component.props
         component.props.children = handleChildren(children)
 
-        return component
+        return m.component(component)
       }
     }
 
