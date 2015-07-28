@@ -1,28 +1,32 @@
 {
-  "name": "mithril-router",
-  "version": "1.3.3",
-  "description": "Django style router for Mithril.js",
-  "main": "mithril.router.js",
+  "name": "mithril-component",
+  "version": "1.0.0",
+  "description": "React style components for Mithril.js",
+  "main": "mithril.component.js",
   "scripts": {
     "test": "make test"
   },
   "keywords": [
-    "router",
+    "component",
     "mithril",
-    "django",
+    "react",
     "reverse",
-    "routing",
-    "route",
-    "path",
-    "query"
+    "class",
+    "webcomponent",
+    "unload",
+    "hoist",
+    "children",
+    "promises",
+    "create",
+    "props",
+    "computation"
   ],
   "author": "Nijiko Yonskai <nijikokun@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "mithril": "^0.1.30",
     "codeclimate-test-reporter": "0.0.4",
-    "coveralls": "^2.11.2",
     "istanbul": "^0.3.8",
+    "mithril": "^0.1.30",
     "mocha": "^2.2.1"
   }
 }

@@ -1,6 +1,6 @@
-# Mithril Router
+# Mithril Component
 
-Django style router for [Mithril.js][mithril]
+React style components for [Mithril.js][mithril]
 
 [![version][npm-version]][npm-url]
 [![License][npm-license]][license-url]
@@ -13,7 +13,7 @@ Django style router for [Mithril.js][mithril]
 ## Install
 
 - Download [the latest package][download]
-- NPM: `npm install mithril-router`
+- NPM: `npm install mithril-component`
 
 ## Usage
 
@@ -23,143 +23,132 @@ Django style router for [Mithril.js][mithril]
 // Include mithril
 var m = require('mithril')
 
-// Pass mithril to the router.
+// Pass mithril to the component system.
 // Only required to overload once, subsequent overloads will
 // return the same instance
-require('mithril-router')(m)
+require('mithril-component')(m)
 ```
 
 **Browser**
 
 ```html
 <script src="path/to/mithril.js" type="text/javascript"></script>
-<script src="path/to/mithril.router.js" type="text/javascript"></script>
+<script src="path/to/mithril.component.js" type="text/javascript"></script>
 ```
 
 ## Documentation
 
-### m.route()
+### m.createComponent(Object specification)
 
-Router allowing creation of Single-Page-Applications (SPA) with a DRY mechanism
-(identification classified as namespaces) to prevent hard-coded URLs.
-
-- `m.route()`: returns current route
-- `m.route(element:DOMElement)`: bind elements while abstracting away route mode
-- `m.route(namespace|route(, parameters:Object))`: programmatic redirect w/ arguments
-- `m.route(namespace|route(, replaceHistory:Boolean))`: programmatic redirect w/ replacing history entry
-- `m.route(namespace|route(, parameters:Object, replaceHistory:Boolean))`: programmatic redirect w/ arguments and replacing history entry
-- `m.route(rootElement:DOMElement, routes:Object)`: configure app routing
-- `m.route(rootElement:DOMElement, rootRoute:String, routes:Object)`: configure app routing (mithril default router style)
-
-#### Configure Routing
-
-To define routing specify a host DOM element, and routes with a root route. Should no root
-route be specified, the first route is chosen.
-
-**New**
+Creates and returns a component class constructor which takes two arguments:
 
 ```js
-m.route(document.body, {
-  "/": { controller: home, namespace: "index", root: true },
-  "/login": { controller: login, namespace: "login" },
-  "/dashboard": { controller: dashboard, namespace: "dashboard" }
-})
+Function ComponentClassConstructor (Object props, Array Children)
 ```
 
-**Classic**
+Component specification requires a `view` method which returns a mithril node element. Components specification may also contain a `controller` method which is ran when the class is created, values returned will be set on `this.state`, to learn more see [Specification Object](#specification-object).
 
-```js
-m.route(document.body, "/", {
-  "/": { controller: home, namespace: "index" },
-  "/login": { controller: login, namespace: "login" },
-  "/dashboard": { controller: dashboard, namespace: "dashboard" }
-})
-```
+### Specification Object
 
----
+- `specification.controller(Object props, Array children)`
 
-### m.route.mode
+  Invoked immediately when used within another mithril element as a child.
 
-See [Mithril.route.html#mode][mithril-mode]
+  **Using Promises**
 
----
+  Supports returning A+ promises, when a promise is returned inside of the controller method, the result is
+  caught by a wrapper which then attaches itself to the `then` and `catch` (should it exist) methods. On
+  success the promise result `data` replaces `component.state`. On error `component.onControllerError` is invoked
+  with the error passed as the first argument.
+- `specification.view()` Render method, should return a mithril element.
+- `specification.onControllerError(Object error)` Invoked when a returned promise fails.
+- `specification.onUnload()` Invoked when component is unloaded.
 
-### m.route.param()
+### Component Class Object
 
-See [Mithril.route.html#param][mithril-param]
+When `ComponentClassConstructor` is invoked the resulting object contains the following properties.
 
----
+- `component.state` Component class internal state
+- `component.props` Component class properties passed from parent
+- `component.setState(Object State)` Sets `component.state` and invokes `m.redraw(true)`
+- `component.controller(Object props, Array children)`
+- `component.view()` Render method, should return a mithril element.
+- `component.onControllerError(Object error)` Invoked when a returned promise fails.
+- `component.onUnload()` Invoked when component is unloaded.
 
-### m.redirect()
 
-Redirect user to specified route, or route namespace with given arguments.
+#### Example Usage
 
-Sugar for `m.route(namespace|path(, args))`
+1. Basic usage w/ Children props ( [React Equivalent](https://facebook.github.io/react/docs/reusable-components.html#transferring-props-a-shortcut) )
 
----
+  ```js
+  var CheckLink = m.createComponent({
+    view: function () {
+      this.props.children.unshift('√ ')
+      return m('a', this.props.attr || {}, this.props.children);
+    }
+  })
 
-### m.reverse()
+  m.render(document.body, m('div.component-holder', [
+    CheckLink({
+      attr: { href: '#' },
+    }, 'Check, Check it out')
+  ]))
+  ```
+2. Controller usage
+  ```js
+  var TimerComponent = m.createComponent({
+    controller: function () {
+      return this.startClock()
+    },
 
-Generate path using specified identifier (route namespace) and path arguments.
+    startClock: function () {
+      var component = this
+      this.state.seconds = 0
+      this.state.clock = setInterval(function () {
+        component.state.seconds++
+        component.setState(component.state)
+      }, 1000)
 
-#### Api
+      return this.state
+    },
 
-- `m.reverse(namespace(, options))`: takes specified route namespace and options and generates path.
+    stopClock: function () {
+      clearInterval(this.state.clock)
+    },
 
-##### Options
+    onUnload: function () {
+      this.stopClock()
+    },
 
-- `params`: **Object** Route parameters, named and non-named.
-- `query`: **String | Object** Querystring
-- `prefix`: **String | Boolean** Mode, when `true` prepends the mode char to the route,
-  when defined as a string the string is prepended instead.
+    view: function (ctrl) {
+      return m('div.timer-component', this.state.seconds);
+    }
+  })
 
-  Useful for when you are not using `config: m.route`
-
-#### Examples
-
-```js
-// user => /user/
-m.reverse('user')
-
-// user => /user/:id => /user/23
-m.reverse('user', { params: { id: 23 }})
-
-// user => /user/:id => /user/23?include=profile
-m.reverse('user', { params: { id: 23 }, query: { include: 'profile' }})
-
-// user => /user/:id => #/user/23?include=profile
-m.route.mode = 'hash'
-m.reverse('user', { prefix: true, params: { id: 23 }, query: { include: 'profile' }})
-
-// user => /user/:id => /api/user/23?include=profile
-m.reverse('user', { prefix: '/api', params: { id: 23 }, query: { include: 'profile' }})
-```
+  m.mount(document.body, TimerComponent())
+  ```
 
 ## License
 
 Licensed under [The MIT License](LICENSE).
 
-[license-url]: https://github.com/Nijikokun/mithril-router/blob/master/LICENSE
+[license-url]: https://github.com/Nijikokun/mithril-component/blob/master/LICENSE
 
-[travis-url]: https://travis-ci.org/Nijikokun/mithril-router
-[travis-image]: https://img.shields.io/travis/Nijikokun/mithril-router.svg?style=flat
+[travis-url]: https://travis-ci.org/Nijikokun/mithril-component
+[travis-image]: https://img.shields.io/travis/Nijikokun/mithril-component.svg?style=flat
 
-[npm-url]: https://www.npmjs.com/package/mithril-router
-[npm-license]: https://img.shields.io/npm/l/mithril-router.svg?style=flat
-[npm-version]: https://img.shields.io/npm/v/mithril-router.svg?style=flat
-[npm-downloads]: https://img.shields.io/npm/dm/mithril-router.svg?style=flat
+[npm-url]: https://www.npmjs.com/package/mithril-component
+[npm-license]: https://img.shields.io/npm/l/mithril-component.svg?style=flat
+[npm-version]: https://img.shields.io/npm/v/mithril-component.svg?style=flat
+[npm-downloads]: https://img.shields.io/npm/dm/mithril-component.svg?style=flat
 
-[coveralls-url]: https://coveralls.io/r/Nijikokun/mithril-router
-[coveralls-coverage]: https://img.shields.io/coveralls/jekyll/jekyll.svg
+[codeclimate-url]: https://codeclimate.com/github/Nijikokun/mithril-component
+[codeclimate-quality]: https://img.shields.io/codeclimate/github/Nijikokun/mithril-component.svg?style=flat
+[codeclimate-coverage]: https://img.shields.io/codeclimate/coverage/github/Nijikokun/mithril-component.svg?style=flat
 
-[codeclimate-url]: https://codeclimate.com/github/Nijikokun/mithril-router
-[codeclimate-quality]: https://img.shields.io/codeclimate/github/Nijikokun/mithril-router.svg?style=flat
-[codeclimate-coverage]: https://img.shields.io/codeclimate/coverage/github/Nijikokun/mithril-router.svg?style=flat
+[david-url]: https://david-dm.org/Nijikokun/mithril-component
+[david-image]: https://img.shields.io/david/Nijikokun/mithril-component.svg?style=flat
 
-[david-url]: https://david-dm.org/Nijikokun/mithril-router
-[david-image]: https://img.shields.io/david/Nijikokun/mithril-router.svg?style=flat
-
-[download]: https://github.com/Nijikokun/mithril-router/archive/v1.2.3.zip
+[download]: https://github.com/Nijikokun/mithril-component/archive/v1.2.3.zip
 [mithril]: https://github.com/lhorie/mithril.js
-[mithril-mode]: http://lhorie.github.io/mithril/mithril.route.html#mode
-[mithril-param]: http://lhorie.github.io/mithril/mithril.route.html#param
