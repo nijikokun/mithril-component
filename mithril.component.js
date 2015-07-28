@@ -138,7 +138,7 @@
 
         // Invoke original controller should this be possible
         if (typeof controller === 'function') {
-          result = controller.call(component, props, component.props.children)
+          result = controller.call(component, component.props, component.props.children)
         }
 
         // Is controller result a promise, utilize this step to
