@@ -1,6 +1,6 @@
 {
   "name": "mithril-component",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "React style components for Mithril.js",
   "main": "mithril.component.js",
   "scripts": {
