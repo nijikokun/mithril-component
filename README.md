@@ -150,5 +150,5 @@ Licensed under [The MIT License](LICENSE).
 [david-url]: https://david-dm.org/Nijikokun/mithril-component
 [david-image]: https://img.shields.io/david/Nijikokun/mithril-component.svg?style=flat
 
-[download]: https://github.com/Nijikokun/mithril-component/archive/v1.2.3.zip
+[download]: https://github.com/Nijikokun/mithril-component/archive/v1.0.0.zip
 [mithril]: https://github.com/lhorie/mithril.js
